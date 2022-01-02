@@ -3,27 +3,32 @@
  * https://reactnavigation.org/docs/getting-started
  *
  */
-import { FontAwesome } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import * as React from 'react';
-import { ColorSchemeName, Pressable } from 'react-native';
+import React, {useEffect} from 'react';
+import { ColorSchemeName } from 'react-native';
 
-import Colors from '../constants/Colors';
-import useColorScheme from '../hooks/useColorScheme';
-import ModalScreen from '../screens/ModalScreen';
-import NotFoundScreen from '../screens/NotFoundScreen';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
-import { RootStackParamList, RootTabParamList, RootTabScreenProps } from '../types';
+import { RootStackParamList, RootTabParamList } from '../types';
 import LinkingConfiguration from './LinkingConfiguration';
+import Memes from '../screens/Memes';
+import Coding from '../screens/Coding';
+import AppTheme from '../theme/AppTheme';
+import { useRecoilState } from 'recoil';
+import { memeData } from '../atom/memeDataAtom';
+import { memeLoading } from '../atom/memeLoadingAtom';
+import { getMemes } from '../utils/getMemes';
+import { codingMemeData } from '../atom/codingMemeDataAtom';
+import { codingMemeLoading } from '../atom/codingMemeLoadingAtom';
+import { getCodingMeme } from '../utils/getCodingMeme';
 
 export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeName }) {
   return (
     <NavigationContainer
       linking={LinkingConfiguration}
-      theme={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      theme={colorScheme === 'dark' ? AppTheme : AppTheme}>
       <RootNavigator />
     </NavigationContainer>
   );
@@ -36,13 +41,21 @@ export default function Navigation({ colorScheme }: { colorScheme: ColorSchemeNa
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function RootNavigator() {
+
+  const [memes, setMemes] = useRecoilState(memeData)
+  const [isMemeLoading, setIsMemeLoading] = useRecoilState(memeLoading)
+  const [codingMeme, setCodingMeme] = useRecoilState(codingMemeData)
+  const [isCodingMemeLoading, setIsCodingMemeLoading] = useRecoilState(codingMemeLoading)
+
+
+  useEffect(() => {
+    getMemes(isMemeLoading, memes, setIsMemeLoading, setMemes)
+    getCodingMeme(isCodingMemeLoading, setIsCodingMemeLoading, setCodingMeme)
+  }, [])
+
   return (
     <Stack.Navigator>
       <Stack.Screen name="Root" component={BottomTabNavigator} options={{ headerShown: false }} />
-      <Stack.Screen name="NotFound" component={NotFoundScreen} options={{ title: 'Oops!' }} />
-      <Stack.Group screenOptions={{ presentation: 'modal' }}>
-        <Stack.Screen name="Modal" component={ModalScreen} />
-      </Stack.Group>
     </Stack.Navigator>
   );
 }
@@ -54,42 +67,28 @@ function RootNavigator() {
 const BottomTab = createBottomTabNavigator<RootTabParamList>();
 
 function BottomTabNavigator() {
-  const colorScheme = useColorScheme();
-
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="Memes"
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: '#fd5a5a',
       }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneScreen}
-        options={({ navigation }: RootTabScreenProps<'TabOne'>) => ({
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Pressable
-              onPress={() => navigation.navigate('Modal')}
-              style={({ pressed }) => ({
-                opacity: pressed ? 0.5 : 1,
-              })}>
-              <FontAwesome
-                name="info-circle"
-                size={25}
-                color={Colors[colorScheme].text}
-                style={{ marginRight: 15 }}
-              />
-            </Pressable>
-          ),
-        })}
+        name="Memes"
+        component={Memes}
+        options={{
+          title: 'Meme',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <FontAwesome5 name="laugh-squint" color={color} size={27} />,
+        }}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoScreen}
+        name="Coding"
+        component={Coding}
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Coding',
+          headerShown: false,
+          tabBarIcon: ({ color }) => <AntDesign name="CodeSandbox" color={color} size={27} />,
         }}
       />
     </BottomTab.Navigator>
@@ -99,9 +98,3 @@ function BottomTabNavigator() {
 /**
  * You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
  */
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={30} style={{ marginBottom: -3 }} {...props} />;
-}

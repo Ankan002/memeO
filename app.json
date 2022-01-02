@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "memeO",
+    "name": "MemeO",
     "slug": "memeO",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#fd5a5a"
     },
     "updates": {
       "fallbackToCacheTimeout": 0
@@ -24,8 +24,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#fd5a5a"
+      },
+      "package": "com.exponents.memeO"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
